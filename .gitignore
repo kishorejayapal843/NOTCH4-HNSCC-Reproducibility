@@ -1,0 +1,22 @@
+# R
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Large/downloaded input data
+data/*
+!data/README.md
+*.gz
+
+# Generated intermediate objects and results (include selected results manually if needed)
+results/rds/
+results/scores/
+results/logs/
+results/tables/
+results/*.png
+results/*.pdf
+
+# OS/editor files
+.DS_Store
+Thumbs.db
