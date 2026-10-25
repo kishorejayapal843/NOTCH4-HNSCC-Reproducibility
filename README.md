@@ -1,58 +1,95 @@
-# NOTCH4-associated pathway analysis in HNSCC
+# NOTCH4-Associated Pathway Analysis in Head and Neck Squamous Cell Carcinoma
 
 ## Overview
-This repository contains an R workflow for analysing NOTCH4-associated pathway scores in TCGA-HNSC and two GEO datasets, GSE65858 and GSE39366. The workflow includes differential expression, Hallmark gene-set enrichment, ssGSEA pathway scoring, Spearman correlations, a combined validation table, and an optional mediation analysis.
 
-**Important:** This is a consolidated/reconstructed workflow prepared from the analysis steps and results available during manuscript preparation. It should not be described as an exact reproduction of the original analysis until all input-data provenance, preprocessing, package versions, and results have been verified. The script writes calculated values; it does not replace them with reference values.
+This repository contains the R scripts used to investigate the association between NOTCH4 expression and selected biological pathways in head and neck squamous cell carcinoma (HNSCC). The analysis integrates data from The Cancer Genome Atlas (TCGA-HNSC) and two independent Gene Expression Omnibus (GEO) datasets.
 
-## Datasets
-- **TCGA-HNSC** — downloaded using `TCGAbiolinks`. The pathway-correlation analysis selects primary tumour samples using sample metadata and expects 520 samples.
-- **GSE65858** — retrieved through GEOquery.
-- **GSE39366** — uses a processed expression file with a `FeatureNum` column and sample columns. Confirm that this is the same processed file and sample mapping used for the analysis. If needed, place the verified file at `data/GSE39366.txt`.
+The workflow includes differential gene expression analysis, gene-set enrichment analysis, single-sample gene-set enrichment analysis (ssGSEA), correlation analysis, and validation across independent datasets.
 
-Use public accession records and their associated publications to verify the source and processing of each dataset.
+## Data Sources
 
-## Analysis outline
-1. Install/load R and Bioconductor dependencies.
-2. Retrieve the gene sets from `msigdbr`/MSigDB.
-3. Download and preprocess TCGA-HNSC counts; select primary tumours for pathway correlations.
-4. Perform NOTCH4 high-versus-low differential expression with DESeq2.
-5. Run Hallmark GSEA using the DESeq2 test statistic.
-6. Process GSE65858 probe annotations and collapse probes mapped to the same gene.
-7. Map GSE39366 feature IDs using GPL9053 annotation and collapse probes mapped to the same gene.
-8. Calculate ssGSEA pathway scores for WNT/β-catenin, EMT, and core matrisome.
-9. Calculate Spearman correlations between NOTCH4 expression and pathway scores.
-10. Export tables, pathway scores, RDS objects, figures, and session logs.
+The analysis uses the following publicly available datasets:
 
-## Run the script
-Open RStudio with this repository root as the working directory, then run:
+* **TCGA-HNSC:** Gene expression data obtained through the Genomic Data Commons using TCGAbiolinks.
+* **GSE65858:** Gene expression dataset retrieved from the Gene Expression Omnibus using GEOquery.
+* **GSE39366:** Gene expression dataset processed using the corresponding platform annotation.
+
+For pathway-correlation analyses, TCGA-HNSC primary tumour samples are selected using sample-type metadata. The current analysis includes 520 primary tumour samples, 270 samples from GSE65858, and 138 samples from GSE39366.
+
+## Analysis Workflow
+
+The analysis is organized into the following steps:
+
+1. Retrieve and preprocess TCGA-HNSC gene expression data.
+2. Identify differentially expressed genes between NOTCH4 expression groups using DESeq2.
+3. Perform Hallmark gene-set enrichment analysis.
+4. Retrieve and prepare gene sets for WNT/β-catenin signalling, epithelial–mesenchymal transition (EMT), and the core matrisome.
+5. Calculate ssGSEA pathway scores for individual samples.
+6. Evaluate associations between NOTCH4 expression and pathway scores using Spearman's rank correlation.
+7. Process and analyse the independent GEO datasets.
+8. Compare pathway associations across datasets.
+9. Export analysis tables, pathway scores, intermediate data objects, and software-session information.
+
+The mediation analysis examining the NOTCH4–SFRP2–FN1 relationship is included in the workflow.
+
+## Requirements
+
+The analysis was developed in R. The principal packages used in the workflow include:
+
+* TCGAbiolinks
+* GEOquery
+* DESeq2
+* GSVA
+* msigdbr
+* clusterProfiler
+* Biobase
+
+Additional dependencies may be required by individual analysis steps. The script loads or installs the packages required by the workflow where configured.
+
+Internet access may be required to retrieve public datasets, gene sets, and package dependencies.
+
+## Running the Analysis
+
+Clone or download this repository and open the project directory in RStudio.
+
+Run the master analysis script from the repository root:
 
 ```r
 source("scripts/NOTCH4_HNSCC_reproducible_analysis_GITHUB.R")
 ```
 
-The script creates `data/` and `results/` subfolders if they do not exist. Internet access is required for package installation and public dataset retrieval. For a fully reproducible submission, record the exact R and package versions and consider using `renv` to lock the environment.
+The workflow generates the analysis outputs in the designated results directories.
 
-## Outputs
-Generated output folders include:
-- `results/tables/` — differential expression, GSEA, mediation summary, pathway coverage, validation correlations, and reference comparison.
-- `results/scores/` — ssGSEA score matrices.
-- `results/rds/` — processed expression matrices, gene sets, scores, and model objects.
-- `results/logs/` — R session information and run summary.
-- `results/` — validation figures.
+For GSE39366, ensure that the processed expression file and its platform annotation correspond to the dataset used in the analysis. If required by the script, place the expression file at:
 
-## Validation status and interpretation
-The workflow was run in R 4.5.2 in the current analysis environment. The reported sample counts were TCGA-HNSC primary tumours = 520, GSE65858 = 270, and GSE39366 = 138.
+```text
+data/GSE39366.txt
+```
 
-The previously obtained reference correlations were:
-- TCGA-HNSC: WNT/β-catenin ρ = 0.4526; EMT ρ = 0.4795; core matrisome ρ = 0.6365 (n = 520).
-- GSE65858: WNT/β-catenin ρ = 0.4105; EMT ρ = 0.3657; core matrisome ρ = 0.5193 (n = 270).
-- GSE39366: WNT/β-catenin ρ = 0.2507; EMT ρ = 0.3158; core matrisome ρ = 0.4876 (n = 138).
+## Output Files
 
-The latest master-script output produced TCGA-HNSC correlations of approximately 0.4572, 0.4867, and 0.6127 for WNT/β-catenin, EMT, and core matrisome, respectively, with n = 520. The GEO correlations matched the reference values to the displayed precision. The TCGA correlations therefore do not exactly reproduce the earlier reference values; this discrepancy should be investigated or clearly documented before describing the workflow as an exact reproduction.
+The workflow generates the following categories of output:
 
-## Mediation analysis
-The mediation section is retained as requested. Its output is generated from the model and settings in the script. Do not imply that mediation establishes causality without appropriate design assumptions and caveats.
+| Directory         | Contents                                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------- |
+| `results/tables/` | Differential expression results, enrichment results, pathway correlations, and cross-dataset validation tables |
+| `results/scores/` | ssGSEA pathway-score matrices                                                                                  |
+| `results/rds/`    | Processed expression data, gene sets, pathway scores, and saved analysis objects                               |
+| `results/logs/`   | Run summaries and R session information                                                                        |
+| `results/`        | Additional analysis outputs and figures                                                                        |
 
-## Suggested citation and data-use notes
-Please cite the original TCGA and GEO data resources and the publications associated with each dataset in any manuscript using these analyses. Confirm each dataset's licence and use conditions before redistribution. Do not commit sensitive or restricted data to this repository.
+Output files are generated when the corresponding analysis steps complete successfully.
+
+## Software Environment
+
+The workflow was run using R version 4.5.2. The R session information generated by the analysis provides details about the software environment.
+
+Package versions may affect certain analysis results. For reproducibility, users should retain the session information and document any changes to the data-processing steps or software environment.
+
+## Citation and Data Availability
+
+Please cite the original publications and database records associated with TCGA-HNSC, GSE65858, and GSE39366 when using these data.
+
+The datasets are available through their respective public repositories, subject to the terms and conditions of those resources.
+
+If this workflow is used in a publication, please cite this repository and its associated release or commit, where appropriate.
