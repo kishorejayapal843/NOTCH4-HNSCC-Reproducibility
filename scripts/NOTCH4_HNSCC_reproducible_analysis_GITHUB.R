@@ -2,39 +2,12 @@
 
 ###############################################################################
 # NOTCH4-associated pathway analysis in HNSCC
-# Updated reproducible analysis script for manuscript/reviewer response
-# Version: 2.1 | Primary-tumour filtering corrected; mediation section retained unchanged
-#
 # Analyses:
 #   1. TCGA-HNSC: primary-tumour expression, NOTCH4/pathway ssGSEA correlations
 #   2. GSE65858: probe-to-gene mapping, ssGSEA and correlations
 #   3. GSE39366: GPL9053 feature-to-gene mapping, ssGSEA and correlations
 #   4. Combined validation table and figure
 #   5. Optional NOTCH4 -> SFRP2 -> FN1 mediation model
-#
-# IMPORTANT:
-# This script reconstructs the workflow from the analysis records available
-# during manuscript preparation. It should be run end-to-end and the outputs
-# compared with the final manuscript before being submitted as the original
-# analysis code. The exact original script was not available for verification.
-#
-# GSE39366:
-# The analysis previously used a processed file with columns FeatureNum and
-# 138 HNxxx samples. The script downloads GEO supplementary files if possible,
-# but if the processed file is not automatically retrieved, place the verified
-# processed file at data/GSE39366.txt. Verify its provenance/sample mapping.
-#
-# TCGA:
-# The correlation analyses use the 520 TCGA-HNSC primary tumour samples.
-# The project-level cohort is HNSC and is not automatically an oral-cavity-only
-# OSCC cohort. If the manuscript specifies a strict oral-cavity filter, document
-# and implement that clinical rule separately before describing it as OSCC-only.
-# The script selects samples from aligned TCGA metadata (sample_type), not from
-# a loose barcode pattern, and stops if the expected 520 primary tumours are not
-# found. Previously obtained correlation values are retained as diagnostics only;
-# they are never substituted for calculated values.
-###############################################################################
-
 options(stringsAsFactors = FALSE)
 set.seed(123)
 
@@ -201,9 +174,6 @@ correlate_notch4 <- function(expr, scores, dataset_label) {
   out
 }
 
-# Reference values from the completed analysis in the project conversation.
-# These are diagnostic comparison values only: the script NEVER overwrites
-# newly calculated results with these values. Differences should be investigated.
 reference_correlations <- data.frame(
   Dataset = rep(c("TCGA-HNSC", "GSE65858", "GSE39366"), each = 3),
   Pathway = rep(c("WNT_Beta_Catenin", "EMT", "Core_Matrisome"), 3),
@@ -253,10 +223,7 @@ writeLines(c(
   paste("msigdbr version:", as.character(packageVersion("msigdbr")))
 ), file.path(LOG_DIR, "gene_set_metadata.txt"))
 
-# ------------------------------- TCGA-HNSC -----------------------------------
-# Download/prepare TCGA-HNSC primary tumours and normal samples. Align metadata
-# explicitly by sample barcode, then retain only Primary Tumor samples.
-# This analysis uses all TCGA-HNSC primary tumours, not an oral-cavity-only subset.
+
 
 tcga_rds <- file.path(RDS_DIR, "TCGA_HNSC_se.rds")
 if (file.exists(tcga_rds)) {
